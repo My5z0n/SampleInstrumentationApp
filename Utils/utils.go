@@ -1,7 +1,10 @@
 package Utils
 
 import (
+	"context"
 	"fmt"
+	"github.com/My5z0n/SampleInstrumentationApp/MessageHandler"
+	"go.opentelemetry.io/otel/trace"
 	"log"
 	"math/rand"
 	"os"
@@ -12,8 +15,14 @@ const TraceparentHeader = "traceparent"
 
 // Queue Name
 const CreateOrderQueueName = "CreateOrderQ"
+const ConfirmProductDetailsQueueName = "ConfirmProductDetailsQ"
+const ProcessConfirmedOrderQueueName = "ProcessConfirmedOrderQ"
+const ProcessPaymentQueueName = "ProcessPaymentQ"
+const ProcessReturnedPaymentQueueName = "ProcessReturnedPaymentQ"
+const ConfirmUserOrderQueueName = "ConfirmUserOrderQ"
+const BigDataProductRequestQueueName = "BigDataProductRequestQ"
 
-func GetEnv(key, fallback string) string {
+func GetEnv(key string, fallback string) string {
 	if value, ok := os.LookupEnv(key); ok {
 		return value
 	}
@@ -37,4 +46,20 @@ func GetRandomString(lenstr int) string {
 		randomString = fmt.Sprintf("%s%s", randomString, randomchar)
 	}
 	return randomString
+}
+func MsgRcv(handler func(trace.Span, context.Context, map[string]any), queueName string) {
+	msgHandler := MessageHandler.MessageHandler{}
+	msgHandler.Create(queueName)
+	inputChan := msgHandler.RegisterConsumer()
+
+	for msg := range inputChan {
+		if span, ok := msg["OTELSPAN"].(trace.Span); ok {
+			if c, ok := msg["CONTEXT"].(context.Context); ok {
+				if msgBody, ok := msg["msg"].(map[string]any); ok {
+					go handler(span, c, msgBody)
+				}
+			}
+
+		}
+	}
 }

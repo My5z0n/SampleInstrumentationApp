@@ -1,32 +1,32 @@
 package api
 
 import (
-	"github.com/My5z0n/SampleInstrumentationApp/MessageHandler"
+	"context"
+	"github.com/My5z0n/SampleInstrumentationApp/Utils"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
-	"log"
 )
 
 var tracer = otel.Tracer("OrderService")
 
-func MsgRcv(handler func(trace.Span, map[string]any), queueName string) {
-	msgHandler := MessageHandler.MessageHandler{}
-	msgHandler.Create(queueName)
-	inputChan := msgHandler.RegisterConsumer()
-
-	for msg := range inputChan {
-		if span, ok := msg["OTELSPAN"].(trace.Span); ok {
-			if msgBody, ok := msg["msg"].(map[string]any); ok {
-				go handler(span, msgBody)
-			}
-
-		}
-	}
-}
-func CreateOrderHandler(span trace.Span, msg map[string]any) {
-	//spanCtx := span.SpanContext()
+func CreateOrderHandler(span trace.Span, ctx context.Context, msg map[string]any) {
 	defer span.End()
+	hdlProductDetails := Utils.GetMessageHandler(Utils.ConfirmProductDetailsQueueName)
+	//TODO
 
-	//Logging
-	log.Printf("Received a message: %s", msg)
+	hdlProductDetails.SendMsg(msg, ctx)
+}
+func ProcessOrderHandler(span trace.Span, ctx context.Context, msg map[string]any) {
+	defer span.End()
+	hdlProductDetails := Utils.GetMessageHandler(Utils.ProcessPaymentQueueName)
+	//TODO
+
+	hdlProductDetails.SendMsg(msg, ctx)
+}
+func ProcessReturnedPaymentHandler(span trace.Span, ctx context.Context, msg map[string]any) {
+	defer span.End()
+	hdlProductDetails := Utils.GetMessageHandler(Utils.ConfirmUserOrderQueueName)
+	//TODO
+
+	hdlProductDetails.SendMsg(msg, ctx)
 }

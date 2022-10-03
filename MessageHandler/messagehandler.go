@@ -116,7 +116,7 @@ func (rcv MessageHandler) RegisterConsumer() <-chan map[string]any {
 			}
 
 			ctx := tc.Extract(context.Background(), tmpCarrier)
-			_, sp := tr.Start(ctx, fmt.Sprintf("%s receive", rcv.queue.Name))
+			c, sp := tr.Start(ctx, fmt.Sprintf("%s receive", rcv.queue.Name))
 			rcv.handleMsgSpanAttributes(sp)
 
 			//ret["spanctx"] = ctx
@@ -125,6 +125,7 @@ func (rcv MessageHandler) RegisterConsumer() <-chan map[string]any {
 			retch <- map[string]any{
 				"msg":      ret,
 				"OTELSPAN": sp,
+				"CONTEXT":  c,
 			}
 		}
 	}()

@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"github.com/My5z0n/SampleInstrumentationApp/CustomerService/api"
+	"github.com/My5z0n/SampleInstrumentationApp/ProductService/api"
 	"github.com/My5z0n/SampleInstrumentationApp/Utils"
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
@@ -17,6 +17,7 @@ import (
 
 func initTracer() *sdktrace.TracerProvider {
 	exporter, err := stdout.New(stdout.WithPrettyPrint())
+	//exporter, err := jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint("http://localhost:14268/api/traces")))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -26,15 +27,13 @@ func initTracer() *sdktrace.TracerProvider {
 		sdktrace.WithResource(
 			resource.NewWithAttributes(
 				semconv.SchemaURL,
-				semconv.ServiceNameKey.String("CustomerService"),
+				semconv.ServiceNameKey.String("ProductService"),
 			)),
 	)
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
 	return tp
 }
-
-var tracer = otel.Tracer("CustomerService")
 
 func main() {
 	tp := initTracer()
@@ -44,13 +43,13 @@ func main() {
 		}
 	}()
 	r := gin.Default()
-	r.Use(otelgin.Middleware("CustomerService"))
+	r.Use(otelgin.Middleware("ProductService"))
 
 	//Map REST
-	r.GET("/api/userinfo/:user", api.GetUserHandler)
+	r.GET("/api/getproductdetails/:productname", api.ProductDetails)
 
-	//Map Messages
-	go Utils.MsgRcv(api.ConfirmUserOrder, Utils.ConfirmUserOrderQueueName)
+	//Map MSG
+	go Utils.MsgRcv(api.OrderDetails, Utils.ConfirmProductDetailsQueueName)
 
-	r.Run(":8801") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	r.Run(":8802")
 }

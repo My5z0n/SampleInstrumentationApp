@@ -40,13 +40,14 @@ func main() {
 			log.Printf("Error shutting down tracer provider: %v", err)
 		}
 	}()
+
 	var run chan struct{}
 
 	//Handlers
 
-	go api.MsgRcv(api.CreateOrderHandler, Utils.CreateOrderQueueName)
-
-	//log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
+	go Utils.MsgRcv(api.CreateOrderHandler, Utils.CreateOrderQueueName)
+	go Utils.MsgRcv(api.ProcessOrderHandler, Utils.ProcessConfirmedOrderQueueName)
+	go Utils.MsgRcv(api.ProcessReturnedPaymentHandler, Utils.ProcessReturnedPaymentQueueName)
 
 	<-run
 

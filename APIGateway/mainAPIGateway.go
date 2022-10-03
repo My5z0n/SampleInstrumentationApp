@@ -32,7 +32,6 @@ func initTracer() *sdktrace.TracerProvider {
 				semconv.SchemaURL,
 				semconv.ServiceNameKey.String("API-Gateway"),
 				semconv.TelemetrySDKLanguageGo,
-				semconv.EnduserIDKey.String("lolxD"),
 			)),
 	)
 	otel.SetTracerProvider(tp)
@@ -51,6 +50,8 @@ func main() {
 	r.Use(otelgin.Middleware("API-Gateway"))
 
 	r.GET("/api/getuserinfo/:user", api.GetUserInfo)
+	r.POST("/api/createorder", api.CreateOrder)
+	r.GET("/api/productdetail/:productname", api.GetProductDetails)
 
 	err := r.Run() //"localhost:8080"
 	if err != nil {
