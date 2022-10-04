@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/My5z0n/SampleInstrumentationApp/MessageHandler"
 	"github.com/My5z0n/SampleInstrumentationApp/ProductService/api"
 	"github.com/My5z0n/SampleInstrumentationApp/Utils"
 	"github.com/gin-gonic/gin"
@@ -49,7 +50,7 @@ func main() {
 	r.GET("/api/getproductdetails/:productname", api.ProductDetails)
 
 	//Map MSG
-	go Utils.MsgRcv(api.OrderDetails, Utils.ConfirmProductDetailsQueueName)
+	go MessageHandler.MsgRcv(api.OrderDetails, Utils.ConfirmProductDetailsQueueName)
 
 	r.Run(":8802")
 }

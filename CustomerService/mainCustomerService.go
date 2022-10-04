@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/My5z0n/SampleInstrumentationApp/CustomerService/api"
+	"github.com/My5z0n/SampleInstrumentationApp/MessageHandler"
 	"github.com/My5z0n/SampleInstrumentationApp/Utils"
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
@@ -50,7 +51,7 @@ func main() {
 	r.GET("/api/userinfo/:user", api.GetUserHandler)
 
 	//Map Messages
-	go Utils.MsgRcv(api.ConfirmUserOrder, Utils.ConfirmUserOrderQueueName)
+	go MessageHandler.MsgRcv(api.ConfirmUserOrder, Utils.ConfirmUserOrderQueueName)
 
 	r.Run(":8801") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

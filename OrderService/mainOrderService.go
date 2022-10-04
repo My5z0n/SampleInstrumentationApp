@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/My5z0n/SampleInstrumentationApp/MessageHandler"
 	"github.com/My5z0n/SampleInstrumentationApp/OrderService/api"
 	"github.com/My5z0n/SampleInstrumentationApp/Utils"
 	"go.opentelemetry.io/otel"
@@ -45,9 +46,9 @@ func main() {
 
 	//Handlers
 
-	go Utils.MsgRcv(api.CreateOrderHandler, Utils.CreateOrderQueueName)
-	go Utils.MsgRcv(api.ProcessOrderHandler, Utils.ProcessConfirmedOrderQueueName)
-	go Utils.MsgRcv(api.ProcessReturnedPaymentHandler, Utils.ProcessReturnedPaymentQueueName)
+	go MessageHandler.MsgRcv(api.CreateOrderHandler, Utils.CreateOrderQueueName)
+	go MessageHandler.MsgRcv(api.ProcessOrderHandler, Utils.ProcessConfirmedOrderQueueName)
+	go MessageHandler.MsgRcv(api.ProcessReturnedPaymentHandler, Utils.ProcessReturnedPaymentQueueName)
 
 	<-run
 

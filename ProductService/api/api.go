@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"github.com/My5z0n/SampleInstrumentationApp/MessageHandler"
 	"github.com/My5z0n/SampleInstrumentationApp/ProductService/model"
 	"github.com/My5z0n/SampleInstrumentationApp/Utils"
 	"github.com/gin-gonic/gin"
@@ -16,7 +17,7 @@ var tracer = otel.Tracer("ProductService")
 
 func OrderDetails(span trace.Span, ctx context.Context, msg map[string]any) {
 	defer span.End()
-	hdlProductDetails := Utils.GetMessageHandler(Utils.ProcessConfirmedOrderQueueName)
+	hdlProductDetails := MessageHandler.GetMessageHandler(Utils.ProcessConfirmedOrderQueueName)
 	//TODO
 
 	hdlProductDetails.SendMsg(msg, ctx)

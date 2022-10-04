@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/My5z0n/SampleInstrumentationApp/APIGateway/model"
+	"github.com/My5z0n/SampleInstrumentationApp/MessageHandler"
 	"github.com/My5z0n/SampleInstrumentationApp/Utils"
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -63,7 +64,7 @@ func CreateOrder(c *gin.Context) {
 		return
 	}
 
-	hdl := Utils.GetMessageHandler(Utils.CreateOrderQueueName)
+	hdl := MessageHandler.GetMessageHandler(Utils.CreateOrderQueueName)
 	hdl.SendMsg(map[string]any{
 		"ProductName": orderModel.ProductName,
 	}, c.Request.Context())
@@ -94,4 +95,8 @@ func GetProductDetails(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, dat)
+}
+
+func Ping(c *gin.Context) {
+	c.JSON(http.StatusOK, "Pong!")
 }

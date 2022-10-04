@@ -22,6 +22,22 @@ type MessageHandler struct {
 
 var tr = otel.Tracer("MessageHandler")
 
+var factoryMap map[string]MessageHandler
+
+func GetMessageHandler(handlerName string) MessageHandler {
+
+	if val, ok := factoryMap[handlerName]; ok {
+		return val
+	} else {
+
+		tmp := MessageHandler{}
+		tmp.Create(handlerName)
+		factoryMap[handlerName] = tmp
+		return tmp
+	}
+
+}
+
 func (rcv *MessageHandler) Create(queueName string) {
 
 	rcv.ConnectionString = Utils.GetEnv("MQConnectionString", "amqp://guest:guest@localhost:5672/")

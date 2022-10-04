@@ -52,6 +52,7 @@ func main() {
 	r.GET("/api/getuserinfo/:user", api.GetUserInfo)
 	r.POST("/api/createorder", api.CreateOrder)
 	r.GET("/api/productdetail/:productname", api.GetProductDetails)
+	r.GET("/api/ping", api.Ping)
 
 	err := r.Run() //"localhost:8080"
 	if err != nil {
