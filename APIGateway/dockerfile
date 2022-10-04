@@ -1,0 +1,35 @@
+FROM golang:1.19.1-alpine as base
+
+EXPOSE 8080
+
+
+
+WORKDIR /APP
+
+COPY go.mod ./
+COPY go.sum ./
+
+RUN go mod download
+
+
+COPY ./APIGateway/ ./APIGateway
+
+COPY ./Utils/ ./Utils
+
+COPY ./MessageHandler/ ./MessageHandler
+
+RUN cd ./APIGateway && go build -o ../build/rungo .
+
+
+## Step 2
+
+FROM golang:1.19.1-alpine
+
+WORKDIR /BUILD
+
+
+COPY --from=base ./APP/build .
+
+CMD [ "./rungo" ]
+
+
