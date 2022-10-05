@@ -3,6 +3,10 @@ receivers:
     protocols:
       grpc:
 
+processors:
+  groupbytrace:
+    wait_duration: 10s
+    num_traces: 1000
 exporters:
   logging:
     loglevel: debug
@@ -11,4 +15,5 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
+      processors: [groupbytrace]
       exporters: [logging]
