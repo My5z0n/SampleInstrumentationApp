@@ -38,7 +38,7 @@ func GetUserInfo(c *gin.Context) {
 
 	span.SetAttributes(attribute.String("firedog.user.name", inputModel.User))
 
-	targetURL := fmt.Sprintf("http://localhost:8801/api/userinfo/%s", inputModel.User)
+	targetURL := fmt.Sprintf("http://customerservice:8801/api/userinfo/%s", inputModel.User)
 
 	res, err := otelhttp.Get(c.Request.Context(), targetURL)
 	res.Request.Context()
@@ -81,7 +81,8 @@ func GetProductDetails(c *gin.Context) {
 		log.Printf("Unable to bind model: %s", err)
 		return
 	}
-	targetURL := fmt.Sprintf("http://localhost:8802/api/getproductdetails/%s", productModel.ProductName)
+
+	targetURL := fmt.Sprintf("http://productservice:8802/api/getproductdetails/%s", productModel.ProductName)
 
 	res, err := otelhttp.Get(c.Request.Context(), targetURL)
 	res.Request.Context()

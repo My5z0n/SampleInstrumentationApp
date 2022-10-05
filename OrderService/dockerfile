@@ -8,13 +8,13 @@ COPY go.sum ./
 RUN go mod download
 
 
-COPY ./APIGateway/ ./APIGateway
+COPY ./OrderService/ ./OrderService
 
 COPY ./Utils/ ./Utils
 
 COPY ./MessageHandler/ ./MessageHandler
 
-RUN cd ./APIGateway && go build -o ../build/rungo .
+RUN cd ./OrderService && go build -o ../build/rungo .
 
 
 ## Step 2

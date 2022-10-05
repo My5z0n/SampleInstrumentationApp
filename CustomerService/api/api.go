@@ -2,7 +2,7 @@ package api
 
 import (
 	"context"
-	"github.com/My5z0n/SampleInstrumentationApp/APIGateway/model"
+	"github.com/My5z0n/SampleInstrumentationApp/CustomerService/model"
 	"github.com/My5z0n/SampleInstrumentationApp/Utils"
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel/attribute"
