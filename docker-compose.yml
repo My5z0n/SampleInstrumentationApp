@@ -18,3 +18,5 @@ services:
         build:
             context: .
             dockerfile: ./APIGateway/dockerfile
+        ports:
+            - 8080:8080
