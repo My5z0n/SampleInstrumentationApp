@@ -40,18 +40,22 @@ func GetUserInfo(c *gin.Context) {
 
 	targetURL := fmt.Sprintf("http://localhost:8801/api/userinfo/%s", inputModel.User)
 
-	res, err := otelhttp.Get(c.Request.Context(), targetURL)
-	//res.Request.Context()
+	res, _ := otelhttp.Get(c.Request.Context(), targetURL)
 
-	resBody, err := io.ReadAll(res.Body)
+	if code := res.StatusCode; code == 200 {
+		resBody, _ := io.ReadAll(res.Body)
 
-	var dat map[string]interface{}
+		var dat map[string]interface{}
 
-	if err := json.Unmarshal(resBody, &dat); err != nil {
-		panic(err)
+		if err := json.Unmarshal(resBody, &dat); err != nil {
+			panic(err)
+		}
+
+		c.JSON(http.StatusOK, dat)
+
+	} else {
+		c.JSON(http.StatusInternalServerError, nil)
 	}
-
-	c.JSON(http.StatusOK, dat)
 
 }
 func CreateOrder(c *gin.Context) {
@@ -85,17 +89,20 @@ func GetProductDetails(c *gin.Context) {
 	targetURL := fmt.Sprintf("http://productservice:8802/api/getproductdetails/%s", productModel.ProductName)
 
 	res, err := otelhttp.Get(c.Request.Context(), targetURL)
-	res.Request.Context()
+	if code := res.StatusCode; code == 200 {
 
-	resBody, err := io.ReadAll(res.Body)
+		resBody, _ := io.ReadAll(res.Body)
 
-	var dat map[string]interface{}
+		var dat map[string]interface{}
 
-	if err := json.Unmarshal(resBody, &dat); err != nil {
-		panic(err)
+		if err := json.Unmarshal(resBody, &dat); err != nil {
+			panic(err)
+		}
+
+		c.JSON(http.StatusOK, dat)
+	} else {
+		c.JSON(http.StatusInternalServerError, nil)
 	}
-
-	c.JSON(http.StatusOK, dat)
 }
 
 func Ping(c *gin.Context) {
