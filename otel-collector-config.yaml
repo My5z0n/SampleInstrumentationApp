@@ -10,10 +10,15 @@ processors:
 exporters:
   logging:
     loglevel: debug
+  otlp:
+    endpoint: host.docker.internal:4320
+    tls:
+      insecure: true
+    compression: none
 
 service:
   pipelines:
     traces:
       receivers: [otlp]
       processors: [groupbytrace]
-      exporters: [logging]
+      exporters: [logging, otlp]
