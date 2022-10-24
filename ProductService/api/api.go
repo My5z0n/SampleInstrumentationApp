@@ -32,8 +32,13 @@ func ProductDetails(c *gin.Context) {
 		log.Printf("Unable to bind model: %s", err)
 		return
 	}
-
 	span.SetAttributes(attribute.String("app.productname", inputModel.ProductName))
-
 	c.JSON(http.StatusOK, nil)
+
+	hdlProductDetails := MessageHandler.GetMessageHandler(Utils.BigDataProductRequestQueueName)
+	//TODO
+
+	hdlProductDetails.SendMsg(map[string]any{
+		"productname": inputModel.ProductName,
+	}, c.Request.Context())
 }
