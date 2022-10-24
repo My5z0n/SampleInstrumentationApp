@@ -21,7 +21,7 @@ func initTracer() *sdktrace.TracerProvider {
 		context.Background(),
 		otlptracegrpc.NewClient(
 			otlptracegrpc.WithInsecure(),
-			//otlptracegrpc.WithEndpoint(),
+			otlptracegrpc.WithEndpoint("0.0.0.0:4317"),
 		),
 	)
 	tp := sdktrace.NewTracerProvider(
@@ -49,6 +49,7 @@ func main() {
 	r := gin.Default()
 	r.Use(otelgin.Middleware("API-Gateway"))
 
+	api.SetURLs()
 	r.GET("/api/getuserinfo/:user", api.GetUserInfo)
 	r.POST("/api/createorder", api.CreateOrder)
 	r.GET("/api/productdetail/:productname", api.GetProductDetails)

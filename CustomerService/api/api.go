@@ -21,7 +21,7 @@ func GetUserHandler(c *gin.Context) {
 		return
 	}
 	span.SetAttributes(attribute.String("app.username", inputModel.User))
-	span.SetAttributes(attribute.String("app.userdetails", inputModel.User))
+	span.SetAttributes(attribute.String("firedog.test3", "HelloAttribute!"))
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": Utils.GetRandomString(10),
@@ -29,6 +29,6 @@ func GetUserHandler(c *gin.Context) {
 }
 func ConfirmUserOrder(span trace.Span, ctx context.Context, msg map[string]any) {
 	defer span.End()
-	//TODO
+	log.Printf("ORDER ENDED")
 
 }

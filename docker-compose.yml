@@ -34,6 +34,7 @@ services:
             - 8080:8080
         environment:
             - MQConnectionString=amqp://guest:guest@rabbitmq:5672/
+            - NotDevelopment=True
   customerservice:
         depends_on:
             - rabbitmq
@@ -43,6 +44,7 @@ services:
             dockerfile: ./CustomerService/dockerfile
         environment:
             - MQConnectionString=amqp://guest:guest@rabbitmq:5672/
+            - NotDevelopment=True
   orderservice:
         depends_on:
             - rabbitmq
@@ -52,6 +54,7 @@ services:
             dockerfile: ./OrderService/dockerfile
         environment:
             - MQConnectionString=amqp://guest:guest@rabbitmq:5672/
+            - NotDevelopment=True
   paymentservice:
         depends_on:
             - rabbitmq
@@ -61,6 +64,7 @@ services:
             dockerfile: ./PaymentService/dockerfile
         environment:
             - MQConnectionString=amqp://guest:guest@rabbitmq:5672/
+            - NotDevelopment=True
   productservice:
         depends_on:
             - rabbitmq
@@ -70,3 +74,4 @@ services:
             dockerfile: ./ProductService/dockerfile
         environment:
             - MQConnectionString=amqp://guest:guest@rabbitmq:5672/
+            - NotDevelopment=True
