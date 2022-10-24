@@ -5,7 +5,7 @@ receivers:
 
 processors:
   groupbytrace:
-    wait_duration: 10s
+    wait_duration: 6s
     num_traces: 1000
 exporters:
   logging:

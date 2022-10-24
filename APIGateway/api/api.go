@@ -18,9 +18,26 @@ import (
 
 var tracer = otel.Tracer("APIGateway")
 
+var URLMapper map[string]string
+
 func addAPIAtributes(c *gin.Context) {
 	span := oteltrace.SpanFromContext(c.Request.Context())
-	span.SetAttributes(attribute.String("firedog.user.agent", c.GetHeader("User-Agent")))
+	span.SetAttributes(attribute.String("firedog.test1", c.GetHeader("User-Agent")))
+
+}
+
+func SetURLs() {
+
+	URLMapper = make(map[string]string)
+	switch Utils.GetEnv("NotDevelopment", "False") {
+	default:
+	case "False":
+		URLMapper["customerservice"] = "localhost"
+		URLMapper["productservice"] = "localhost"
+	case "True":
+		URLMapper["customerservice"] = "customerservice"
+		URLMapper["productservice"] = "productservice"
+	}
 
 }
 
@@ -36,11 +53,16 @@ func GetUserInfo(c *gin.Context) {
 		return
 	}
 
-	span.SetAttributes(attribute.String("firedog.user.name", inputModel.User))
+	span.SetAttributes(attribute.String("firedog.test2", inputModel.User))
 
-	targetURL := fmt.Sprintf("http://localhost:8801/api/userinfo/%s", inputModel.User)
+	targetURL := fmt.Sprintf("http://%s:8801/api/userinfo/%s", URLMapper["customerservice"], inputModel.User)
 
-	res, _ := otelhttp.Get(c.Request.Context(), targetURL)
+	res, err := otelhttp.Get(c.Request.Context(), targetURL)
+	if err != nil {
+		log.Printf("Error during customerservice request: %v", err)
+		c.JSON(http.StatusInternalServerError, nil)
+		return
+	}
 
 	if code := res.StatusCode; code == 200 {
 		resBody, _ := io.ReadAll(res.Body)
@@ -73,7 +95,7 @@ func CreateOrder(c *gin.Context) {
 		"ProductName": orderModel.ProductName,
 	}, c.Request.Context())
 
-	c.JSON(http.StatusAccepted, nil)
+	c.JSON(http.StatusAccepted, "OK")
 
 }
 func GetProductDetails(c *gin.Context) {
@@ -86,7 +108,7 @@ func GetProductDetails(c *gin.Context) {
 		return
 	}
 
-	targetURL := fmt.Sprintf("http://productservice:8802/api/getproductdetails/%s", productModel.ProductName)
+	targetURL := fmt.Sprintf("http://%s:8802/api/getproductdetails/%s", URLMapper["productservice"], productModel.ProductName)
 
 	res, err := otelhttp.Get(c.Request.Context(), targetURL)
 	if code := res.StatusCode; code == 200 {

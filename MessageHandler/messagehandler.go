@@ -22,7 +22,7 @@ type MessageHandler struct {
 
 var tr = otel.Tracer("MessageHandler")
 
-var factoryMap map[string]MessageHandler
+var factoryMap = make(map[string]MessageHandler)
 
 func GetMessageHandler(handlerName string) MessageHandler {
 
@@ -100,6 +100,7 @@ func (rcv *MessageHandler) SendMsg(message map[string]any, ctx context.Context) 
 			Body:        body,
 			Headers:     headers,
 		})
+
 	Utils.FailOnError(err, "Failed to publish a message")
 
 }
