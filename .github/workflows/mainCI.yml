@@ -16,7 +16,12 @@ jobs:
            tag: siapp-apigateway
          - dockerfile: ./CustomerService/dockerfile
            tag: siapp-customerservice
-           
+         - dockerfile: ./OrderService/dockerfile
+           tag: siapp-orderservice
+         - dockerfile: ./PaymentService/dockerfile
+           tag: siapp-paymentservice
+         - dockerfile: ./ProductService/dockerfile
+           tag: siapp-productservice
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
