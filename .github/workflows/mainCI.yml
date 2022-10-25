@@ -41,3 +41,5 @@ jobs:
           push: true
           file: ${{ matrix.dockerfile }}
           tags: szmnnagel/${{ matrix.tag }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
