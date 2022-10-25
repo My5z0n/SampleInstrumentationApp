@@ -7,9 +7,16 @@ on:
     branches: [ master ]
 
 jobs:
-  prepare_build:
+  build_push:
     runs-on: ubuntu-latest
-    
+    strategy:
+      matrix:
+       include:
+         - dockerfile: ./APIGateway/dockerfile
+           tag: siapp-apigateway
+         - dockerfile: ./CustomerService/dockerfile
+           tag: siapp-customerservice
+           
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -22,25 +29,10 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-  build_api:
-      needs: prepare_build
-      runs-on: ubuntu-latest
-
-      steps:  
+          
       - name: Build and push API Gateway
         uses: docker/build-push-action@v3
         with:
           push: true
-          file: ./APIGateway/dockerfile
-          tags: szmnnagel/siapp-apigateway:latest
-  build_customerservice:
-      needs: prepare_build
-      runs-on: ubuntu-latest
-      
-      steps:
-      - name: Build and push API Gateway
-        uses: docker/build-push-action@v3
-        with:
-          push: true
-          file: ./CustomerService/dockerfile
-          tags: szmnnagel/siapp-customerservice:latest
+          file: ${{ matrix.dockerfile }}
+          tags: szmnnagel/${{ matrix.tag }}:latest
