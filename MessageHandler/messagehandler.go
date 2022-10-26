@@ -10,6 +10,8 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
+	"log"
+	"time"
 )
 
 type MessageHandler struct {
@@ -29,7 +31,6 @@ func GetMessageHandler(handlerName string) MessageHandler {
 	if val, ok := factoryMap[handlerName]; ok {
 		return val
 	} else {
-
 		tmp := MessageHandler{}
 		tmp.Create(handlerName)
 		factoryMap[handlerName] = tmp
@@ -43,11 +44,21 @@ func (rcv *MessageHandler) Create(queueName string) {
 	rcv.ConnectionString = Utils.GetEnv("MQConnectionString", "amqp://guest:guest@localhost:5672/")
 	rcv.QueueName = queueName
 
-	conn, err := amqp.Dial(rcv.ConnectionString)
-	Utils.FailOnError(err, "Failed to connect to RabbitMQ")
-	rcv.connection = conn
-
-	ch, err := conn.Channel()
+	maxPoolTime := time.Now().Add(time.Second * 30)
+	for true {
+		conn, err := amqp.Dial(rcv.ConnectionString)
+		if err == nil {
+			rcv.connection = conn
+			break
+		} else if !time.Now().After(maxPoolTime) {
+			log.Println("Failed to connect to RabbitMQ retrying...")
+			time.Sleep(time.Second)
+			continue
+		} else {
+			Utils.FailOnError(err, "Failed to connect to RabbitMQ")
+		}
+	}
+	ch, err := rcv.connection.Channel()
 	Utils.FailOnError(err, "Failed to open a channel")
 	rcv.chanel = ch
 
@@ -88,24 +99,21 @@ func (rcv *MessageHandler) SendMsg(message map[string]any, ctx context.Context) 
 	headers := map[string]any{
 		Utils.TraceparentHeader: carrier[Utils.TraceparentHeader],
 	}
-
 	body, err := json.Marshal(message)
-	err = rcv.chanel.PublishWithContext(ctx,
-		"",             // exchange
-		rcv.queue.Name, // routing key
-		false,          // mandatory
-		false,          // immediate
-		amqp.Publishing{
-			ContentType: "application/json",
-			Body:        body,
-			Headers:     headers,
-		})
 
-	Utils.FailOnError(err, "Failed to publish a message")
+	//Publish
+	err = rcv.publish(body, headers)
+
+	//Try to retry connection if error
+	if err != nil {
+		rcv.Create(rcv.QueueName)
+		err = rcv.publish(body, headers)
+		Utils.FailOnError(err, "Failed to publish a message")
+	}
 
 }
 
-func (rcv MessageHandler) RegisterConsumer() <-chan map[string]any {
+func (rcv *MessageHandler) RegisterConsumer() <-chan map[string]any {
 	msgs, err := rcv.chanel.Consume(
 		rcv.queue.Name, // queue
 		"",             // consumer
@@ -136,9 +144,6 @@ func (rcv MessageHandler) RegisterConsumer() <-chan map[string]any {
 			c, sp := tr.Start(ctx, fmt.Sprintf("%s receive", rcv.queue.Name))
 			rcv.handleMsgSpanAttributes(sp)
 
-			//ret["spanctx"] = ctx
-			//ret["OTELSPAN"] = sp
-
 			retch <- map[string]any{
 				"msg":      ret,
 				"OTELSPAN": sp,
@@ -148,4 +153,17 @@ func (rcv MessageHandler) RegisterConsumer() <-chan map[string]any {
 	}()
 
 	return retch
+}
+
+func (rcv *MessageHandler) publish(body []byte, headers map[string]any) error {
+	return rcv.chanel.PublishWithContext(context.Background(),
+		"",             // exchange
+		rcv.queue.Name, // routing key
+		false,          // mandatory
+		false,          // immediate
+		amqp.Publishing{
+			ContentType: "application/json",
+			Body:        body,
+			Headers:     headers,
+		})
 }
