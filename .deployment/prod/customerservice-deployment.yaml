@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customerservice-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: customerservice
+  template:
+    metadata:
+      labels:
+        app: customerservice
+    spec:
+      containers:
+      - name: customerservice
+        image: szmnnagel/siapp-customerservice:latest
+        ports:
+        - containerPort: 8081
+        env:
+        - name: RABBITMQ_URL
+          valueFrom:
+            configMapKeyRef:
+              name: rabbitmq-configmap
+              key: rabbitmq_url  
+        - name: RABBITMQ_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: rabbitmq-configmap
+              key: rabbitmq_username  
+        - name: RABBITMQ_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: rabbitmq-configmap
+              key: rabbitmq_password  
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: customerservice-service
+spec:
+  selector:
+    app: customerservice
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8081
+    

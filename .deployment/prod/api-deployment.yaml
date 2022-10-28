@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-apigateway-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-apigateway
+  template:
+    metadata:
+      labels:
+        app: app-apigateway
+    spec:
+      containers:
+      - name: apigateway
+        image: szmnnagel/siapp-apigateway:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: CUSTOMERSERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: urlservices-configmap
+              key: customerservice_url  
+        - name: PRODUCTSERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: urlservices-configmap
+              key: productservice_url          
+        - name: RABBITMQ_URL
+          valueFrom:
+            configMapKeyRef:
+              name: rabbitmq-configmap
+              key: rabbitmq_url  
+        - name: RABBITMQ_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: rabbitmq-configmap
+              key: rabbitmq_username  
+        - name: RABBITMQ_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: rabbitmq-configmap
+              key: rabbitmq_password  
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-service
+spec:
+  selector:
+    app: app-apigateway
+  type: LoadBalancer
+  ports:
+  - nodePort: 31556
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+    

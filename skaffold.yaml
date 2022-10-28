@@ -1,0 +1,41 @@
+apiVersion: skaffold/v2beta29
+kind: Config
+metadata:
+  name: sampleinstrumentationapp
+build:
+  artifacts:
+  - image: szmnnagel/siapp-apigateway
+    context: .
+    docker:
+      dockerfile: ./APIGateway/dockerfile
+  - image: szmnnagel/siapp-customerservice
+    context: .
+    docker:
+      dockerfile: ./CustomerService/dockerfile
+  - image: szmnnagel/siapp-orderservice
+    context: .
+    docker:
+      dockerfile: ./OrderService/dockerfile
+  - image: szmnnagel/siapp-paymentservice
+    context: .
+    docker:
+      dockerfile: ./PaymentService/dockerfile
+  - image: szmnnagel/siapp-productservice
+    context: .
+    docker:
+      dockerfile: ./ProductService/dockerfile
+deploy:
+  kubectl:
+    manifests:
+    - .deployment/prod/api-deployment.yaml
+    - .deployment/prod/customerservice-deployment.yaml
+    - .deployment/prod/orderservice-deployment.yaml
+    - .deployment/prod/paymentservice-deployment.yaml
+    - .deployment/prod/productservice-deployment.yaml
+    
+
+    - .deployment/prod/urlservices-configmap.yaml
+    - .deployment/prod/rabbit-deployment.yaml
+    - .deployment/prod/rabbitmq-configmap.yaml
+
+

@@ -44,11 +44,13 @@ func main() {
 
 	var run chan struct{}
 
-	//Handlers
+	cfg := Utils.InitConfig()
+	msgHdlFactory := MessageHandler.GetFactory(cfg)
 
-	go MessageHandler.MsgRcv(api.CreateOrderHandler, Utils.CreateOrderQueueName)
-	go MessageHandler.MsgRcv(api.ProcessOrderHandler, Utils.ProcessConfirmedOrderQueueName)
-	go MessageHandler.MsgRcv(api.ProcessReturnedPaymentHandler, Utils.ProcessReturnedPaymentQueueName)
+	//Handlers
+	go MessageHandler.MsgRcv(api.CreateOrderHandler, Utils.CreateOrderQueueName, msgHdlFactory)
+	go MessageHandler.MsgRcv(api.ProcessOrderHandler, Utils.ProcessConfirmedOrderQueueName, msgHdlFactory)
+	go MessageHandler.MsgRcv(api.ProcessReturnedPaymentHandler, Utils.ProcessReturnedPaymentQueueName, msgHdlFactory)
 
 	<-run
 

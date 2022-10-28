@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: productservice-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: productservice
+  template:
+    metadata:
+      labels:
+        app: productservice
+    spec:
+      containers:
+      - name: productservice
+        image: szmnnagel/siapp-productservice:latest
+        ports:
+        - containerPort: 8082
+        env:
+        - name: RABBITMQ_URL
+          valueFrom:
+            configMapKeyRef:
+              name: rabbitmq-configmap
+              key: rabbitmq_url  
+        - name: RABBITMQ_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: rabbitmq-configmap
+              key: rabbitmq_username  
+        - name: RABBITMQ_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: rabbitmq-configmap
+              key: rabbitmq_password  
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: productservice-service
+spec:
+  selector:
+    app: productservice
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8082
+    

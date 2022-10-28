@@ -15,9 +15,17 @@ import (
 
 var tracer = otel.Tracer("ProductService")
 
-func OrderDetails(span trace.Span, ctx context.Context, msg map[string]any) {
+var MainConfig Utils.Config
+var MsgHdlFactory MessageHandler.Factory
+
+func SetSetting(cfg Utils.Config, msgHdlFactory MessageHandler.Factory) {
+	MainConfig = cfg
+	MsgHdlFactory = msgHdlFactory
+}
+
+func OrderDetails(span trace.Span, ctx context.Context, msg map[string]any, f MessageHandler.Factory) {
 	defer span.End()
-	hdlProductDetails := MessageHandler.GetMessageHandler(Utils.ProcessConfirmedOrderQueueName)
+	hdlProductDetails := f.GetMessageHandler(Utils.ProcessConfirmedOrderQueueName)
 	//TODO
 
 	hdlProductDetails.SendMsg(msg, ctx)
@@ -35,7 +43,7 @@ func ProductDetails(c *gin.Context) {
 	span.SetAttributes(attribute.String("app.productname", inputModel.ProductName))
 	c.JSON(http.StatusOK, nil)
 
-	hdlProductDetails := MessageHandler.GetMessageHandler(Utils.BigDataProductRequestQueueName)
+	hdlProductDetails := MsgHdlFactory.GetMessageHandler(Utils.BigDataProductRequestQueueName)
 	//TODO
 
 	hdlProductDetails.SendMsg(map[string]any{

@@ -46,11 +46,16 @@ func main() {
 	r := gin.Default()
 	r.Use(otelgin.Middleware("ProductService"))
 
+	cfg := Utils.InitConfig()
+	msgHdlFactory := MessageHandler.GetFactory(cfg)
+
+	api.SetSetting(cfg, msgHdlFactory)
+
 	//Map REST
 	r.GET("/api/getproductdetails/:productname", api.ProductDetails)
 
 	//Map MSG
-	go MessageHandler.MsgRcv(api.OrderDetails, Utils.ConfirmProductDetailsQueueName)
+	go MessageHandler.MsgRcv(api.OrderDetails, Utils.ConfirmProductDetailsQueueName, msgHdlFactory)
 
-	r.Run(":8802")
+	r.Run(":8082")
 }

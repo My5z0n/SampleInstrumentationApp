@@ -54,11 +54,14 @@ func main() {
 	r := gin.Default()
 	r.Use(otelgin.Middleware("CustomerService"))
 
+	cfg := Utils.InitConfig()
+	msgHdlFactory := MessageHandler.GetFactory(cfg)
+
 	//Map REST
 	r.GET("/api/userinfo/:user", api.GetUserHandler)
 
 	//Map Messages
-	go MessageHandler.MsgRcv(api.ConfirmUserOrder, Utils.ConfirmUserOrderQueueName)
+	go MessageHandler.MsgRcv(api.ConfirmUserOrder, Utils.ConfirmUserOrderQueueName, msgHdlFactory)
 
-	r.Run(":8801") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	r.Run(":8081") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

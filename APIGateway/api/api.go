@@ -18,7 +18,8 @@ import (
 
 var tracer = otel.Tracer("APIGateway")
 
-var URLMapper map[string]string
+var MainConfig Utils.Config
+var MsgHdlFactory MessageHandler.Factory
 
 func addAPIAtributes(c *gin.Context) {
 	span := oteltrace.SpanFromContext(c.Request.Context())
@@ -26,19 +27,9 @@ func addAPIAtributes(c *gin.Context) {
 
 }
 
-func SetURLs() {
-
-	URLMapper = make(map[string]string)
-	switch Utils.GetEnv("NotDevelopment", "False") {
-	default:
-	case "False":
-		URLMapper["customerservice"] = "localhost"
-		URLMapper["productservice"] = "localhost"
-	case "True":
-		URLMapper["customerservice"] = "customerservice"
-		URLMapper["productservice"] = "productservice"
-	}
-
+func SetSetting(cfg Utils.Config, msgHdlFactory MessageHandler.Factory) {
+	MainConfig = cfg
+	MsgHdlFactory = msgHdlFactory
 }
 
 func GetUserInfo(c *gin.Context) {
@@ -55,7 +46,8 @@ func GetUserInfo(c *gin.Context) {
 
 	span.SetAttributes(attribute.String("firedog.test2", inputModel.User))
 
-	targetURL := fmt.Sprintf("http://%s:8801/api/userinfo/%s", URLMapper["customerservice"], inputModel.User)
+	targetURL := fmt.Sprintf("http://%s:8080/api/userinfo/%s",
+		MainConfig.URLMapper["customerservice"], inputModel.User)
 
 	res, err := otelhttp.Get(c.Request.Context(), targetURL)
 	if err != nil {
@@ -90,7 +82,7 @@ func CreateOrder(c *gin.Context) {
 		return
 	}
 
-	hdl := MessageHandler.GetMessageHandler(Utils.CreateOrderQueueName)
+	hdl := MsgHdlFactory.GetMessageHandler(Utils.CreateOrderQueueName)
 	hdl.SendMsg(map[string]any{
 		"ProductName": orderModel.ProductName,
 	}, c.Request.Context())
@@ -108,7 +100,7 @@ func GetProductDetails(c *gin.Context) {
 		return
 	}
 
-	targetURL := fmt.Sprintf("http://%s:8802/api/getproductdetails/%s", URLMapper["productservice"], productModel.ProductName)
+	targetURL := fmt.Sprintf("http://%s:8080/api/getproductdetails/%s", MainConfig.URLMapper["productservice"], productModel.ProductName)
 
 	res, err := otelhttp.Get(c.Request.Context(), targetURL)
 	if code := res.StatusCode; code == 200 {
