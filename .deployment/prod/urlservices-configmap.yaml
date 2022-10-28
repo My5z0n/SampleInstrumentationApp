@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: urlservices-configmap
+data:
+  customerservice_url: customerservice-service
+  productservice_url: productservice-service

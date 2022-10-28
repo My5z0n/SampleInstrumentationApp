@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"github.com/My5z0n/SampleInstrumentationApp/CustomerService/model"
+	"github.com/My5z0n/SampleInstrumentationApp/MessageHandler"
 	"github.com/My5z0n/SampleInstrumentationApp/Utils"
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel/attribute"
@@ -27,7 +28,7 @@ func GetUserHandler(c *gin.Context) {
 		"message": Utils.GetRandomString(10),
 	})
 }
-func ConfirmUserOrder(span trace.Span, ctx context.Context, msg map[string]any) {
+func ConfirmUserOrder(span trace.Span, ctx context.Context, msg map[string]any, f MessageHandler.Factory) {
 	defer span.End()
 	log.Printf("ORDER ENDED")
 

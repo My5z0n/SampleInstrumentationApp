@@ -7,9 +7,9 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-func ProcessPaymentHandler(span trace.Span, ctx context.Context, msg map[string]any) {
+func ProcessPaymentHandler(span trace.Span, ctx context.Context, msg map[string]any, f MessageHandler.Factory) {
 	defer span.End()
-	hdlProductDetails := MessageHandler.GetMessageHandler(Utils.ProcessReturnedPaymentQueueName)
+	hdlProductDetails := f.GetMessageHandler(Utils.ProcessReturnedPaymentQueueName)
 	//TODO
 
 	hdlProductDetails.SendMsg(msg, ctx)

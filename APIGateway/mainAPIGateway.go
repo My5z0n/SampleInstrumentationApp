@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"github.com/My5z0n/SampleInstrumentationApp/APIGateway/api"
+	"github.com/My5z0n/SampleInstrumentationApp/MessageHandler"
+	"github.com/My5z0n/SampleInstrumentationApp/Utils"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 
 	"github.com/gin-gonic/gin"
@@ -49,7 +51,10 @@ func main() {
 	r := gin.Default()
 	r.Use(otelgin.Middleware("API-Gateway"))
 
-	api.SetURLs()
+	cfg := Utils.InitConfig()
+	msgHdlFactory := MessageHandler.GetFactory(cfg)
+
+	api.SetSetting(cfg, msgHdlFactory)
 	r.GET("/api/getuserinfo/:user", api.GetUserInfo)
 	r.POST("/api/createorder", api.CreateOrder)
 	r.GET("/api/productdetail/:productname", api.GetProductDetails)

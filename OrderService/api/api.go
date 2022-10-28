@@ -10,23 +10,23 @@ import (
 
 var tracer = otel.Tracer("OrderService")
 
-func CreateOrderHandler(span trace.Span, ctx context.Context, msg map[string]any) {
+func CreateOrderHandler(span trace.Span, ctx context.Context, msg map[string]any, f MessageHandler.Factory) {
 	defer span.End()
-	hdlProductDetails := MessageHandler.GetMessageHandler(Utils.ConfirmProductDetailsQueueName)
+	hdlProductDetails := f.GetMessageHandler(Utils.ConfirmProductDetailsQueueName)
 	//TODO
 
 	hdlProductDetails.SendMsg(msg, ctx)
 }
-func ProcessOrderHandler(span trace.Span, ctx context.Context, msg map[string]any) {
+func ProcessOrderHandler(span trace.Span, ctx context.Context, msg map[string]any, f MessageHandler.Factory) {
 	defer span.End()
-	hdlProductDetails := MessageHandler.GetMessageHandler(Utils.ProcessPaymentQueueName)
+	hdlProductDetails := f.GetMessageHandler(Utils.ProcessPaymentQueueName)
 	//TODO
 
 	hdlProductDetails.SendMsg(msg, ctx)
 }
-func ProcessReturnedPaymentHandler(span trace.Span, ctx context.Context, msg map[string]any) {
+func ProcessReturnedPaymentHandler(span trace.Span, ctx context.Context, msg map[string]any, f MessageHandler.Factory) {
 	defer span.End()
-	hdlProductDetails := MessageHandler.GetMessageHandler(Utils.ConfirmUserOrderQueueName)
+	hdlProductDetails := f.GetMessageHandler(Utils.ConfirmUserOrderQueueName)
 	//TODO
 
 	hdlProductDetails.SendMsg(msg, ctx)
