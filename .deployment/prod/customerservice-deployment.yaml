@@ -11,6 +11,7 @@ spec:
     metadata:
       labels:
         app: customerservice
+        typaname: sample-app     
     spec:
       containers:
       - name: customerservice

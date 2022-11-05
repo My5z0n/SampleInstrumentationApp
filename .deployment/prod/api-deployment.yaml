@@ -11,6 +11,7 @@ spec:
     metadata:
       labels:
         app: app-apigateway
+        typaname: sample-app
     spec:
       containers:
       - name: apigateway
