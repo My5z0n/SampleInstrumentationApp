@@ -11,7 +11,7 @@ exporters:
   logging:
     loglevel: debug
   otlp:
-    endpoint: host.docker.internal:4320
+    endpoint: gateway.docker.internal:4320
     tls:
       insecure: true
     compression: none
