@@ -11,6 +11,7 @@ spec:
     metadata:
       labels:
         app: paymentservice
+        typaname: sample-app
     spec:
       containers:
       - name: paymentservice

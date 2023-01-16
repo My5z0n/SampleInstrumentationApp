@@ -46,7 +46,7 @@ func GetUserInfo(c *gin.Context) {
 
 	span.SetAttributes(attribute.String("firedog.test2", inputModel.User))
 
-	targetURL := fmt.Sprintf("http://%s:8080/api/userinfo/%s",
+	targetURL := fmt.Sprintf("http://%s:8081/api/userinfo/%s",
 		MainConfig.URLMapper["customerservice"], inputModel.User)
 
 	res, err := otelhttp.Get(c.Request.Context(), targetURL)

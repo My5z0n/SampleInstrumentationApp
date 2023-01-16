@@ -23,6 +23,8 @@ services:
         - "4317:4317"   # OTLP gRPC receiver
         - "4318:4318"   # OTLP http receiver
         - "55679:55679" # zpages extension
+        networks:
+            - network-external
   apigateway:
         depends_on:
             - rabbitmq
@@ -75,3 +77,8 @@ services:
         environment:
             - MQConnectionString=amqp://guest:guest@rabbitmq:5672/
             - NotDevelopment=True
+
+networks:
+    network-external:
+        name: otel_network
+        external: true
