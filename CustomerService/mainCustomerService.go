@@ -58,7 +58,7 @@ func main() {
 	msgHdlFactory := MessageHandler.GetFactory(cfg)
 
 	//Map REST
-	r.GET("/api/userinfo/:user", api.GetUserHandler)
+	r.GET("/api/customer-userinfo/:user", api.GetUserHandler)
 
 	//Map Messages
 	go MessageHandler.MsgRcv(api.ConfirmUserOrder, Utils.ConfirmUserOrderQueueName, msgHdlFactory)

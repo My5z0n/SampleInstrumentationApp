@@ -3,6 +3,7 @@ package MessageHandler
 import (
 	"fmt"
 	"github.com/My5z0n/SampleInstrumentationApp/Utils"
+	"log"
 	"sync"
 )
 
@@ -25,10 +26,11 @@ func (f *Factory) GetMessageHandler(queueName string) MessageHandler {
 	if val, ok := f.handlerMapper[queueName]; ok {
 		return val
 	} else {
-		connectionString := fmt.Sprintf("amqp://%s:%s@%s:5672/",
+		connectionString := fmt.Sprintf("amqp://%s:%s@%s:5672",
 			f.config.ServiceCredential["rabbitmq"].Username,
 			f.config.ServiceCredential["rabbitmq"].Password,
 			f.config.URLMapper["rabbitmq"])
+		log.Printf("Try connection to: %v", connectionString)
 
 		tmp := MessageHandler{}
 		tmp.CreateConnection(queueName, connectionString)

@@ -1,84 +1,93 @@
 version: '3'
 
 services:
-  rabbitmq:
-      image: rabbitmq:3-management
-      container_name: rabbitmq
-      ports:
-          - 5672:5672
-          - 15672:15672
-      volumes:
-          - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
-          - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
-  otel-collector:
-        image: otel/opentelemetry-collector-contrib
-        command: ["--config=/etc/otel-collector-config.yaml"]
+    myrabbitmq:
+        image: rabbitmq:3-management
+        container_name: myrabbitmq
+        expose:
+            - "5672:5672"
+            - "15672:15672"
         volumes:
-        - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
-        ports:
-        - "1888:1888"   # pprof extension
-        - "8888:8888"   # Prometheus metrics exposed by the collector
-        - "8889:8889"   # Prometheus exporter metrics
-        - "13133:13133" # health_check extension
-        - "4317:4317"   # OTLP gRPC receiver
-        - "4318:4318"   # OTLP http receiver
-        - "55679:55679" # zpages extension
+            - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+            - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
         networks:
-            - network-external
-  apigateway:
-        depends_on:
-            - rabbitmq
-        container_name: apigateway
-        build:
-            context: .
-            dockerfile: ./APIGateway/dockerfile
-        ports:
-            - 8080:8080
-        environment:
-            - MQConnectionString=amqp://guest:guest@rabbitmq:5672/
-            - NotDevelopment=True
-  customerservice:
-        depends_on:
-            - rabbitmq
-        container_name: customerservice
-        build:
-            context: .
-            dockerfile: ./CustomerService/dockerfile
-        environment:
-            - MQConnectionString=amqp://guest:guest@rabbitmq:5672/
-            - NotDevelopment=True
-  orderservice:
-        depends_on:
-            - rabbitmq
-        container_name: orderservice
-        build:
-            context: .
-            dockerfile: ./OrderService/dockerfile
-        environment:
-            - MQConnectionString=amqp://guest:guest@rabbitmq:5672/
-            - NotDevelopment=True
-  paymentservice:
-        depends_on:
-            - rabbitmq
-        container_name: paymentservice
-        build:
-            context: .
-            dockerfile: ./PaymentService/dockerfile
-        environment:
-            - MQConnectionString=amqp://guest:guest@rabbitmq:5672/
-            - NotDevelopment=True
-  productservice:
-        depends_on:
-            - rabbitmq
-        container_name: productservice
-        build:
-            context: .
-            dockerfile: ./ProductService/dockerfile
-        environment:
-            - MQConnectionString=amqp://guest:guest@rabbitmq:5672/
-            - NotDevelopment=True
-
+            - rabbitmq-network
+    otel-collector:
+            image: otel/opentelemetry-collector-contrib
+            command: ["--config=/etc/otel-collector-config.yaml"]
+            volumes:
+            - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+        #    ports:
+        #    - "1888:1888"   # pprof extension
+        #    - "8888:8888"   # Prometheus metrics exposed by the collector
+        #    - "8889:8889"   # Prometheus exporter metrics
+        #    - "13133:13133" # health_check extension
+        #    - "4317:4317"   # OTLP gRPC receiver
+        #    - "4318:4318"   # OTLP http receiver
+        #    - "55679:55679" # zpages extension
+            networks:
+                - network-external
+    apigateway:
+            depends_on:
+                - myrabbitmq
+            container_name: apigateway
+            build:
+                context: .
+                dockerfile: ./APIGateway/dockerfile
+            ports:
+                - 8080:8080
+            env_file:
+                - ./.ops/rabbitmq.env
+            networks:
+                - rabbitmq-network        
+    customerservice:
+            depends_on:
+                - myrabbitmq
+            container_name: customerservice
+            build:
+                context: .
+                dockerfile: ./CustomerService/dockerfile
+            env_file:
+                - ./.ops/rabbitmq.env
+            networks:
+                - rabbitmq-network        
+    orderservice:
+            depends_on:
+                - myrabbitmq
+            container_name: orderservice
+            build:
+                context: .
+                dockerfile: ./OrderService/dockerfile
+            env_file:
+                - ./.ops/rabbitmq.env
+            networks:
+                - rabbitmq-network        
+    paymentservice:
+            depends_on:
+                - myrabbitmq
+            container_name: paymentservice
+            build:
+                context: .
+                dockerfile: ./PaymentService/dockerfile
+            env_file:
+                - ./.ops/rabbitmq.env
+            networks:
+                - rabbitmq-network        
+    productservice:
+            depends_on:
+                - myrabbitmq
+            container_name: productservice
+            build:
+                context: .
+                dockerfile: ./ProductService/dockerfile
+            env_file:
+                - ./.ops/rabbitmq.env
+            networks:
+                - rabbitmq-network        
 networks:
+    rabbitmq-network:
+        driver: bridge
     network-external:
         name: otel_network
         external: true
+    

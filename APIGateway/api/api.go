@@ -21,7 +21,7 @@ var tracer = otel.Tracer("APIGateway")
 var MainConfig Utils.Config
 var MsgHdlFactory MessageHandler.Factory
 
-func addAPIAtributes(c *gin.Context) {
+func addAPIAttributes(c *gin.Context) {
 	span := oteltrace.SpanFromContext(c.Request.Context())
 	span.SetAttributes(attribute.String("firedog.test1", c.GetHeader("User-Agent")))
 
@@ -34,7 +34,7 @@ func SetSetting(cfg Utils.Config, msgHdlFactory MessageHandler.Factory) {
 
 func GetUserInfo(c *gin.Context) {
 
-	addAPIAtributes(c)
+	addAPIAttributes(c)
 	span := oteltrace.SpanFromContext(c.Request.Context())
 
 	var inputModel model.GetUserInfoModelInput
@@ -46,7 +46,7 @@ func GetUserInfo(c *gin.Context) {
 
 	span.SetAttributes(attribute.String("firedog.test2", inputModel.User))
 
-	targetURL := fmt.Sprintf("http://%s:8081/api/userinfo/%s",
+	targetURL := fmt.Sprintf("http://%s:8081/api/customer-userinfo/%s",
 		MainConfig.URLMapper["customerservice"], inputModel.User)
 
 	res, err := otelhttp.Get(c.Request.Context(), targetURL)
@@ -73,7 +73,7 @@ func GetUserInfo(c *gin.Context) {
 
 }
 func CreateOrder(c *gin.Context) {
-	addAPIAtributes(c)
+	addAPIAttributes(c)
 
 	var orderModel model.CreateOrderModel
 	err := c.ShouldBindJSON(&orderModel)
@@ -91,7 +91,7 @@ func CreateOrder(c *gin.Context) {
 
 }
 func GetProductDetails(c *gin.Context) {
-	addAPIAtributes(c)
+	addAPIAttributes(c)
 
 	var productModel model.ProductDetailsModel
 	err := c.ShouldBindJSON(&productModel)
