@@ -22,7 +22,7 @@ func initTracer() *sdktrace.TracerProvider {
 		context.Background(),
 		otlptracegrpc.NewClient(
 			otlptracegrpc.WithInsecure(),
-			otlptracegrpc.WithEndpoint("0.0.0.0:4317"),
+			otlptracegrpc.WithEndpoint("otel-collector:4317"),
 		),
 	)
 	if err != nil {

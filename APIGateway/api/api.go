@@ -13,6 +13,7 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 )
 
@@ -20,12 +21,7 @@ var tracer = otel.Tracer("APIGateway")
 
 var MainConfig Utils.Config
 var MsgHdlFactory MessageHandler.Factory
-
-func addAPIAttributes(c *gin.Context) {
-	span := oteltrace.SpanFromContext(c.Request.Context())
-	span.SetAttributes(attribute.String("firedog.test1", c.GetHeader("User-Agent")))
-
-}
+var regions = []string{"eu-central-1", "eu-west-3", "us-east-1", "us-west-2", "eu-north-1"}
 
 func SetSetting(cfg Utils.Config, msgHdlFactory MessageHandler.Factory) {
 	MainConfig = cfg
@@ -33,8 +29,8 @@ func SetSetting(cfg Utils.Config, msgHdlFactory MessageHandler.Factory) {
 }
 
 func GetUserInfo(c *gin.Context) {
+	Utils.AddAPIAttributes(c)
 
-	addAPIAttributes(c)
 	span := oteltrace.SpanFromContext(c.Request.Context())
 
 	var inputModel model.GetUserInfoModelInput
@@ -44,10 +40,19 @@ func GetUserInfo(c *gin.Context) {
 		return
 	}
 
-	span.SetAttributes(attribute.String("firedog.test2", inputModel.User))
-
 	targetURL := fmt.Sprintf("http://%s:8081/api/customer-userinfo/%s",
 		MainConfig.URLMapper["customerservice"], inputModel.User)
+
+	r := rand.Intn(len(regions))
+	region := regions[r]
+	span.SetAttributes(attribute.String("AWS.region", region))
+
+	if c.GetHeader("experiment") == "true" {
+		if region == "eu-central-1" {
+			c.JSON(http.StatusInternalServerError, nil)
+			return
+		}
+	}
 
 	res, err := otelhttp.Get(c.Request.Context(), targetURL)
 	if err != nil {
@@ -73,7 +78,7 @@ func GetUserInfo(c *gin.Context) {
 
 }
 func CreateOrder(c *gin.Context) {
-	addAPIAttributes(c)
+	Utils.AddAPIAttributes(c)
 
 	var orderModel model.CreateOrderModel
 	err := c.ShouldBindJSON(&orderModel)
@@ -91,7 +96,7 @@ func CreateOrder(c *gin.Context) {
 
 }
 func GetProductDetails(c *gin.Context) {
-	addAPIAttributes(c)
+	Utils.AddAPIAttributes(c)
 
 	var productModel model.ProductDetailsModel
 	err := c.ShouldBindJSON(&productModel)
@@ -120,5 +125,6 @@ func GetProductDetails(c *gin.Context) {
 }
 
 func Ping(c *gin.Context) {
+	Utils.AddAPIAttributes(c)
 	c.JSON(http.StatusOK, "Pong!")
 }
