@@ -22,7 +22,7 @@ func initTracer() *sdktrace.TracerProvider {
 		context.Background(),
 		otlptracegrpc.NewClient(
 			otlptracegrpc.WithInsecure(),
-			otlptracegrpc.WithEndpoint("0.0.0.0:4317"),
+			otlptracegrpc.WithEndpoint("otel-collector:4317"),
 		),
 	)
 	if err != nil {
@@ -58,7 +58,7 @@ func main() {
 	msgHdlFactory := MessageHandler.GetFactory(cfg)
 
 	//Map REST
-	r.GET("/api/userinfo/:user", api.GetUserHandler)
+	r.GET("/api/customer-userinfo/:user", api.GetUserHandler)
 
 	//Map Messages
 	go MessageHandler.MsgRcv(api.ConfirmUserOrder, Utils.ConfirmUserOrderQueueName, msgHdlFactory)

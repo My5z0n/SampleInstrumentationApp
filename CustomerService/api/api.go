@@ -13,6 +13,8 @@ import (
 )
 
 func GetUserHandler(c *gin.Context) {
+	Utils.AddAPIAttributes(c)
+
 	span := trace.SpanFromContext(c.Request.Context())
 
 	var inputModel model.GetUserInfoModelInput
@@ -21,8 +23,8 @@ func GetUserHandler(c *gin.Context) {
 		log.Printf("Unable to bind model: %s", err)
 		return
 	}
+
 	span.SetAttributes(attribute.String("app.username", inputModel.User))
-	span.SetAttributes(attribute.String("firedog.test3", "HelloAttribute!"))
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": Utils.GetRandomString(10),
