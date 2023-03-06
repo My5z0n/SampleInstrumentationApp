@@ -26,9 +26,12 @@ func GetUserHandler(c *gin.Context) {
 
 	span.SetAttributes(attribute.String("app.username", inputModel.User))
 
+	panic("Random Error")
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": Utils.GetRandomString(10),
 	})
+
 }
 func ConfirmUserOrder(span trace.Span, ctx context.Context, msg map[string]any, f MessageHandler.Factory) {
 	defer span.End()
