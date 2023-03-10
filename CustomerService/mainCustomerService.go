@@ -57,11 +57,8 @@ func main() {
 	cfg := Utils.InitConfig()
 	msgHdlFactory := MessageHandler.GetFactory(cfg)
 
-	//Map REST
-	r.GET("/api/customer-userinfo/:user", api.GetUserHandler)
-
 	//Map Messages
-	go MessageHandler.MsgRcv(api.ConfirmUserOrder, Utils.ConfirmUserOrderQueueName, msgHdlFactory)
-
-	r.Run(":8081") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	go MessageHandler.MsgRcv(api.ConfirmUserOrder, Utils.ConfirmUserOrderQueueName, &msgHdlFactory, Utils.All)
+	go MessageHandler.MsgRcv(api.GetUserInfo, Utils.GetUserInfoQueueName, &msgHdlFactory, Utils.All)
+	r.Run(":8081")
 }

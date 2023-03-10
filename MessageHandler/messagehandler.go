@@ -68,14 +68,14 @@ func (rcv *MessageHandler) CreateConnection(queueName string, con string) {
 }
 
 func (rcv *MessageHandler) SendMsg(message map[string]any, ctx context.Context) {
-	_, sp := tr.Start(ctx, fmt.Sprintf("%s send", rcv.queue.Name))
+	newCtx, sp := tr.Start(ctx, fmt.Sprintf("%s send", rcv.queue.Name))
 	defer sp.End()
 
 	rcv.handleMsgSpanAttributes(sp)
 
 	tc := propagation.TraceContext{}
 	carrier := propagation.MapCarrier{}
-	tc.Inject(ctx, carrier)
+	tc.Inject(newCtx, carrier)
 
 	headers := map[string]any{
 		Utils.TraceparentHeader: carrier[Utils.TraceparentHeader],

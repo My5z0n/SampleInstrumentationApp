@@ -1,29 +1,28 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/My5z0n/SampleInstrumentationApp/APIGateway/model"
 	"github.com/My5z0n/SampleInstrumentationApp/MessageHandler"
 	"github.com/My5z0n/SampleInstrumentationApp/Utils"
 	"github.com/gin-gonic/gin"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"github.com/google/uuid"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	oteltrace "go.opentelemetry.io/otel/trace"
-	"io"
 	"log"
 	"math/rand"
 	"net/http"
+	"time"
 )
 
 var tracer = otel.Tracer("APIGateway")
 
 var MainConfig Utils.Config
-var MsgHdlFactory MessageHandler.Factory
+var MsgHdlFactory *MessageHandler.Factory
 var regions = []string{"eu-central-1", "eu-west-3", "us-east-1", "us-west-2", "eu-north-1"}
 
-func SetSetting(cfg Utils.Config, msgHdlFactory MessageHandler.Factory) {
+func SetSetting(cfg Utils.Config, msgHdlFactory *MessageHandler.Factory) {
 	MainConfig = cfg
 	MsgHdlFactory = msgHdlFactory
 }
@@ -40,9 +39,6 @@ func GetUserInfo(c *gin.Context) {
 		return
 	}
 
-	targetURL := fmt.Sprintf("http://%s:8081/api/customer-userinfo/%s",
-		MainConfig.URLMapper["customerservice"], inputModel.User)
-
 	r := rand.Intn(len(regions))
 	region := regions[r]
 	span.SetAttributes(attribute.String("AWS.region", region))
@@ -54,26 +50,26 @@ func GetUserInfo(c *gin.Context) {
 		}
 	}
 
-	res, err := otelhttp.Get(c.Request.Context(), targetURL)
-	if err != nil {
-		log.Printf("Error during customerservice request: %v", err)
-		c.JSON(http.StatusInternalServerError, nil)
-		return
-	}
+	qid := fmt.Sprintf("%v", uuid.New())
+	span.SetAttributes(attribute.String("GetProductDetailsQueue.qid", qid))
+	msgResponse := MsgHdlFactory.SetWaitingResponse(qid, Utils.GetUserInfoResponseQueueName)
+	hdl := MsgHdlFactory.GetMessageHandler(Utils.GetUserInfoQueueName)
+	hdl.SendMsg(map[string]any{
+		"UserName": inputModel.User,
+		"QID":      qid,
+	}, c.Request.Context())
 
-	if code := res.StatusCode; code == 200 {
-		resBody, _ := io.ReadAll(res.Body)
-
-		var dat map[string]interface{}
-
-		if err := json.Unmarshal(resBody, &dat); err != nil {
-			panic(err)
+	select {
+	case msg := <-msgResponse:
+		{
+			close(msgResponse)
+			defer msg.Span.End()
+			c.JSON(http.StatusAccepted, "GetUser - OK Response")
 		}
-
-		c.JSON(http.StatusOK, dat)
-
-	} else {
-		c.JSON(http.StatusInternalServerError, nil)
+	case <-time.After(3 * time.Second):
+		{
+			c.JSON(http.StatusInternalServerError, "GetUser - Error Response")
+		}
 	}
 
 }
@@ -96,32 +92,38 @@ func CreateOrder(c *gin.Context) {
 
 }
 func GetProductDetails(c *gin.Context) {
+	span := oteltrace.SpanFromContext(c.Request.Context())
 	Utils.AddAPIAttributes(c)
-
 	var productModel model.ProductDetailsModel
-	err := c.ShouldBindJSON(&productModel)
+	err := c.ShouldBindUri(&productModel)
 	if err != nil {
 		log.Printf("Unable to bind model: %s", err)
 		return
 	}
 
-	targetURL := fmt.Sprintf("http://%s:8080/api/getproductdetails/%s", MainConfig.URLMapper["productservice"], productModel.ProductName)
+	qid := fmt.Sprintf("%v", uuid.New())
+	span.SetAttributes(attribute.String("GetProductDetailsQueue.qid", qid))
+	msgResponse := MsgHdlFactory.SetWaitingResponse(qid, Utils.GetProductDetailsResponseQueueName)
+	hdl := MsgHdlFactory.GetMessageHandler(Utils.GetProductDetailsQueueName)
+	hdl.SendMsg(map[string]any{
+		"ProductName": productModel.ProductName,
+		"QID":         qid,
+	}, c.Request.Context())
 
-	res, err := otelhttp.Get(c.Request.Context(), targetURL)
-	if code := res.StatusCode; code == 200 {
-
-		resBody, _ := io.ReadAll(res.Body)
-
-		var dat map[string]interface{}
-
-		if err := json.Unmarshal(resBody, &dat); err != nil {
-			panic(err)
+	select {
+	case msg := <-msgResponse:
+		{
+			close(msgResponse)
+			defer msg.Span.End()
+			c.JSON(http.StatusAccepted, "ProductDetails - OK Response")
 		}
-
-		c.JSON(http.StatusOK, dat)
-	} else {
-		c.JSON(http.StatusInternalServerError, nil)
+		//TODO Change timer after increase of max time in OtelCollector wait
+	case <-time.After(3 * time.Second):
+		{
+			c.JSON(http.StatusAccepted, "ProductDetails - ERROR Response")
+		}
 	}
+
 }
 
 func Ping(c *gin.Context) {

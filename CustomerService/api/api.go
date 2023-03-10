@@ -2,38 +2,28 @@ package api
 
 import (
 	"context"
-	"github.com/My5z0n/SampleInstrumentationApp/CustomerService/model"
 	"github.com/My5z0n/SampleInstrumentationApp/MessageHandler"
 	"github.com/My5z0n/SampleInstrumentationApp/Utils"
-	"github.com/gin-gonic/gin"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"log"
-	"net/http"
 )
 
-func GetUserHandler(c *gin.Context) {
-	Utils.AddAPIAttributes(c)
+func GetUserInfo(span trace.Span, ctx context.Context, msg map[string]any, f *MessageHandler.Factory) {
+	defer span.End()
 
-	span := trace.SpanFromContext(c.Request.Context())
+	tmp := msg["UserName"].(string)
 
-	var inputModel model.GetUserInfoModelInput
-
-	if err := c.ShouldBindUri(&inputModel); err != nil {
-		log.Printf("Unable to bind model: %s", err)
+	if tmp == "Jeff" {
 		return
 	}
 
-	span.SetAttributes(attribute.String("app.username", inputModel.User))
+	hdlProductDetails := f.GetMessageHandler(Utils.GetUserInfoResponseQueueName)
+	//TODO
 
-	panic("Random Error")
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": Utils.GetRandomString(10),
-	})
+	hdlProductDetails.SendMsg(msg, ctx)
 
 }
-func ConfirmUserOrder(span trace.Span, ctx context.Context, msg map[string]any, f MessageHandler.Factory) {
+func ConfirmUserOrder(span trace.Span, ctx context.Context, msg map[string]any, f *MessageHandler.Factory) {
 	defer span.End()
 	log.Printf("ORDER ENDED")
 

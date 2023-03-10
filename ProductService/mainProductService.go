@@ -55,13 +55,14 @@ func main() {
 	cfg := Utils.InitConfig()
 	msgHdlFactory := MessageHandler.GetFactory(cfg)
 
-	api.SetSetting(cfg, msgHdlFactory)
+	api.SetSetting(cfg, &msgHdlFactory)
 
 	//Map REST
-	r.GET("/api/getproductdetails/:productname", api.ProductDetails)
+	r.GET("/api/getproductdetails/:productname", api.OldProductDetails)
 
 	//Map MSG
-	go MessageHandler.MsgRcv(api.OrderDetails, Utils.ConfirmProductDetailsQueueName, msgHdlFactory)
+	go MessageHandler.MsgRcv(api.OrderDetails, Utils.ConfirmProductDetailsQueueName, &msgHdlFactory, Utils.All)
+	go MessageHandler.MsgRcv(api.ProductDetails, Utils.GetProductDetailsQueueName, &msgHdlFactory, Utils.All)
 
 	r.Run(":8082")
 }
