@@ -94,6 +94,18 @@ func (rcv *MessageHandler) SendMsg(message map[string]any, ctx context.Context) 
 
 }
 
+func (rcv *MessageHandler) MockSendMsg(message map[string]any, ctx context.Context) {
+	newCtx, sp := tr.Start(ctx, fmt.Sprintf("%s send", rcv.queue.Name))
+	defer sp.End()
+
+	rcv.handleMsgSpanAttributes(sp)
+
+	tc := propagation.TraceContext{}
+	carrier := propagation.MapCarrier{}
+	tc.Inject(newCtx, carrier)
+
+}
+
 func (rcv *MessageHandler) RegisterConsumer() <-chan map[string]any {
 	msgs, err := rcv.chanel.Consume(
 		rcv.queue.Name, // queue

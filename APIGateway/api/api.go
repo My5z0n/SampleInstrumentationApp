@@ -20,7 +20,7 @@ var tracer = otel.Tracer("APIGateway")
 
 var MainConfig Utils.Config
 var MsgHdlFactory *MessageHandler.Factory
-var regions = []string{"eu-central-1", "eu-west-3", "us-east-1", "us-west-2", "eu-north-1"}
+var azones = []string{"us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d", "us-east-1e"}
 
 func SetSetting(cfg Utils.Config, msgHdlFactory *MessageHandler.Factory) {
 	MainConfig = cfg
@@ -39,32 +39,40 @@ func GetUserInfo(c *gin.Context) {
 		return
 	}
 
-	r := rand.Intn(len(regions))
-	region := regions[r]
-	span.SetAttributes(attribute.String("AWS.region", region))
-
-	if c.GetHeader("experiment") == "true" {
-		if region == "eu-central-1" {
-			c.JSON(http.StatusInternalServerError, nil)
-			return
-		}
-	}
+	r := rand.Intn(len(azones))
+	region := azones[r]
+	span.SetAttributes(attribute.String("AWS.azone", region))
 
 	qid := fmt.Sprintf("%v", uuid.New())
 	span.SetAttributes(attribute.String("GetProductDetailsQueue.qid", qid))
 	msgResponse := MsgHdlFactory.SetWaitingResponse(qid, Utils.GetUserInfoResponseQueueName)
 	hdl := MsgHdlFactory.GetMessageHandler(Utils.GetUserInfoQueueName)
-	hdl.SendMsg(map[string]any{
-		"UserName": inputModel.User,
-		"QID":      qid,
-	}, c.Request.Context())
+
+	if c.GetHeader("experiment") == "true" {
+		if region == "us-east-1b" {
+			hdl.MockSendMsg(map[string]any{
+				"UserName": inputModel.User,
+				"QID":      qid,
+			}, c.Request.Context())
+		} else {
+			hdl.SendMsg(map[string]any{
+				"UserName": inputModel.User,
+				"QID":      qid,
+			}, c.Request.Context())
+		}
+	} else {
+		hdl.SendMsg(map[string]any{
+			"UserName": inputModel.User,
+			"QID":      qid,
+		}, c.Request.Context())
+	}
 
 	select {
 	case msg := <-msgResponse:
 		{
 			close(msgResponse)
 			defer msg.Span.End()
-			c.JSON(http.StatusAccepted, "GetUser - OK Response")
+			c.JSON(http.StatusOK, "GetUser - OK Response")
 		}
 	case <-time.After(3 * time.Second):
 		{
@@ -86,6 +94,7 @@ func CreateOrder(c *gin.Context) {
 	hdl := MsgHdlFactory.GetMessageHandler(Utils.CreateOrderQueueName)
 	hdl.SendMsg(map[string]any{
 		"ProductName": orderModel.ProductName,
+		"Coupon":      orderModel.Coupon,
 	}, c.Request.Context())
 
 	c.JSON(http.StatusAccepted, "OK")
@@ -94,19 +103,14 @@ func CreateOrder(c *gin.Context) {
 func GetProductDetails(c *gin.Context) {
 	span := oteltrace.SpanFromContext(c.Request.Context())
 	Utils.AddAPIAttributes(c)
-	var productModel model.ProductDetailsModel
-	err := c.ShouldBindUri(&productModel)
-	if err != nil {
-		log.Printf("Unable to bind model: %s", err)
-		return
-	}
+	var productModel = c.Param("productname")
 
 	qid := fmt.Sprintf("%v", uuid.New())
 	span.SetAttributes(attribute.String("GetProductDetailsQueue.qid", qid))
 	msgResponse := MsgHdlFactory.SetWaitingResponse(qid, Utils.GetProductDetailsResponseQueueName)
 	hdl := MsgHdlFactory.GetMessageHandler(Utils.GetProductDetailsQueueName)
 	hdl.SendMsg(map[string]any{
-		"ProductName": productModel.ProductName,
+		"ProductName": productModel,
 		"QID":         qid,
 	}, c.Request.Context())
 
@@ -115,12 +119,12 @@ func GetProductDetails(c *gin.Context) {
 		{
 			close(msgResponse)
 			defer msg.Span.End()
-			c.JSON(http.StatusAccepted, "ProductDetails - OK Response")
+			c.JSON(http.StatusOK, "ProductDetails - OK Response")
 		}
 		//TODO Change timer after increase of max time in OtelCollector wait
 	case <-time.After(3 * time.Second):
 		{
-			c.JSON(http.StatusAccepted, "ProductDetails - ERROR Response")
+			c.JSON(http.StatusInternalServerError, "ProductDetails - ERROR Response")
 		}
 	}
 
