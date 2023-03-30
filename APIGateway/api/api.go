@@ -27,6 +27,15 @@ func SetSetting(cfg Utils.Config, msgHdlFactory *MessageHandler.Factory) {
 	MsgHdlFactory = msgHdlFactory
 }
 
+// GetUserInfo
+// @Summary Gets user information.
+// @Description Retrieves information about a user.
+// @Produce json
+// @Tags User
+// @Param user path string true "Username"
+// @Success 200 {string} string "GetUser - OK Response"
+// @Failure 500 {string} string "GetUser - Error Response"
+// @Router /api/user/{user} [get]
 func GetUserInfo(c *gin.Context) {
 	Utils.AddAPIAttributes(c)
 
@@ -81,6 +90,17 @@ func GetUserInfo(c *gin.Context) {
 	}
 
 }
+
+// CreateOrder
+// @Summary Create an order
+// @Description Create an order for a product with an optional coupon
+// @Tags Order
+// @Accept json
+// @Produce json
+// @Param request body model.CreateOrderModel true "Order information"
+// @Success 202 {string} string "OK"
+// @Failure 400 {string} string "Bad request"
+// @Router /api/order [post]
 func CreateOrder(c *gin.Context) {
 	Utils.AddAPIAttributes(c)
 
@@ -100,6 +120,17 @@ func CreateOrder(c *gin.Context) {
 	c.JSON(http.StatusAccepted, "OK")
 
 }
+
+// GetProductDetails
+// @Summary Get product details
+// @Description Get the details of a product by its name
+// @Tags Product
+// @Accept json
+// @Produce json
+// @Param productname path string true "Product name"
+// @Success 200 {string} string "ProductDetails - OK Response"
+// @Failure 500 {string} string "ProductDetails - ERROR Response"
+// @Router /api/product/{productname} [get]
 func GetProductDetails(c *gin.Context) {
 	span := oteltrace.SpanFromContext(c.Request.Context())
 	Utils.AddAPIAttributes(c)
@@ -130,6 +161,14 @@ func GetProductDetails(c *gin.Context) {
 
 }
 
+// Ping
+// @Summary Ping the API
+// @Description Ping the API to check if it is up and running
+// @Tags Ping
+// @Accept json
+// @Produce json
+// @Success 200 {string} string "Pong!"
+// @Router /api/ping [get]
 func Ping(c *gin.Context) {
 	Utils.AddAPIAttributes(c)
 	c.JSON(http.StatusOK, "Pong!")
