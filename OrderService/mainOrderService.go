@@ -54,9 +54,9 @@ func main() {
 	msgHdlFactory := MessageHandler.GetFactory(cfg)
 
 	//Handlers
-	go MessageHandler.MsgRcv(api.CreateOrderHandler, Utils.CreateOrderQueueName, msgHdlFactory)
-	go MessageHandler.MsgRcv(api.ProcessOrderHandler, Utils.ProcessConfirmedOrderQueueName, msgHdlFactory)
-	go MessageHandler.MsgRcv(api.ProcessReturnedPaymentHandler, Utils.ProcessReturnedPaymentQueueName, msgHdlFactory)
+	go MessageHandler.MsgRcv(api.CreateOrderHandler, Utils.CreateOrderQueueName, &msgHdlFactory, Utils.All)
+	go MessageHandler.MsgRcv(api.ProcessOrderHandler, Utils.ProcessConfirmedOrderQueueName, &msgHdlFactory, Utils.All)
+	go MessageHandler.MsgRcv(api.ProcessReturnedPaymentHandler, Utils.ProcessReturnedPaymentQueueName, &msgHdlFactory, Utils.All)
 
 	<-run
 

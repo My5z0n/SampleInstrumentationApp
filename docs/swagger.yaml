@@ -1,0 +1,103 @@
+definitions:
+  model.CreateOrderModel:
+    properties:
+      Coupon:
+        type: string
+      ProductName:
+        type: string
+    required:
+    - ProductName
+    type: object
+info:
+  contact: {}
+paths:
+  /api/order:
+    post:
+      consumes:
+      - application/json
+      description: Create an order for a product with an optional coupon
+      parameters:
+      - description: Order information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateOrderModel'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            type: string
+      summary: Create an order
+      tags:
+      - Order
+  /api/ping:
+    get:
+      consumes:
+      - application/json
+      description: Ping the API to check if it is up and running
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Pong!
+          schema:
+            type: string
+      summary: Ping the API
+      tags:
+      - Ping
+  /api/product/{productname}:
+    get:
+      consumes:
+      - application/json
+      description: Get the details of a product by its name
+      parameters:
+      - description: Product name
+        in: path
+        name: productname
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ProductDetails - OK Response
+          schema:
+            type: string
+        "500":
+          description: ProductDetails - ERROR Response
+          schema:
+            type: string
+      summary: Get product details
+      tags:
+      - Product
+  /api/user/{user}:
+    get:
+      description: Retrieves information about a user.
+      parameters:
+      - description: Username
+        in: path
+        name: user
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: GetUser - OK Response
+          schema:
+            type: string
+        "500":
+          description: GetUser - Error Response
+          schema:
+            type: string
+      summary: Gets user information.
+      tags:
+      - User
+swagger: "2.0"

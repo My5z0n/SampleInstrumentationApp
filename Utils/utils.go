@@ -19,6 +19,19 @@ const ProcessReturnedPaymentQueueName = "ProcessReturnedPaymentQ"
 const ConfirmUserOrderQueueName = "ConfirmUserOrderQ"
 const BigDataProductRequestQueueName = "BigDataProductRequestQ"
 
+const GetProductDetailsQueueName = "GetProductDetailsQ"
+const GetProductDetailsResponseQueueName = "GetProductDetailsQR"
+
+const GetUserInfoQueueName = "GetUserInfoQ"
+const GetUserInfoResponseQueueName = "GetUserInfoQR"
+
+type ReceiveMessageMode int64
+
+const (
+	All ReceiveMessageMode = iota
+	IDOnly
+)
+
 func GetEnv(key string, fallback string) string {
 	if value, ok := os.LookupEnv(key); ok {
 		return value

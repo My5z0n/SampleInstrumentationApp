@@ -5,11 +5,13 @@ import (
 	"github.com/My5z0n/SampleInstrumentationApp/APIGateway/api"
 	"github.com/My5z0n/SampleInstrumentationApp/MessageHandler"
 	"github.com/My5z0n/SampleInstrumentationApp/Utils"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
-
+	_ "github.com/My5z0n/SampleInstrumentationApp/docs"
 	"github.com/gin-gonic/gin"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -49,16 +51,20 @@ func main() {
 		}
 	}()
 	r := gin.Default()
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	r.Use(otelgin.Middleware("API-Gateway"))
 
 	cfg := Utils.InitConfig()
 	msgHdlFactory := MessageHandler.GetFactory(cfg)
 
-	api.SetSetting(cfg, msgHdlFactory)
-	r.GET("/api/getuserinfo/:user", api.GetUserInfo)
-	r.POST("/api/createorder", api.CreateOrder)
-	r.GET("/api/productdetail/:productname", api.GetProductDetails)
+	api.SetSetting(cfg, &msgHdlFactory)
+	r.GET("/api/user/:user", api.GetUserInfo)
+	r.POST("/api/order", api.CreateOrder)
+	r.GET("/api/product/:productname", api.GetProductDetails)
 	r.GET("/api/ping", api.Ping)
+
+	go MessageHandler.MsgRcv(nil, Utils.GetProductDetailsResponseQueueName, &msgHdlFactory, Utils.IDOnly)
+	go MessageHandler.MsgRcv(nil, Utils.GetUserInfoResponseQueueName, &msgHdlFactory, Utils.IDOnly)
 
 	err := r.Run() //"localhost:8080"
 	if err != nil {

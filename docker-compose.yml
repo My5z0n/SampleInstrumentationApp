@@ -13,7 +13,7 @@ services:
         networks:
             - rabbitmq-network
     otel-collector:
-            image: otel/opentelemetry-collector-contrib
+            image: otel/opentelemetry-collector-contrib:0.72.0
             command: ["--config=/etc/otel-collector-config.yaml"]
             volumes:
             - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml

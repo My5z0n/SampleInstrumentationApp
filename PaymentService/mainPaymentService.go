@@ -54,7 +54,7 @@ func main() {
 
 	//Handlers
 
-	go MessageHandler.MsgRcv(api.ProcessPaymentHandler, Utils.ProcessPaymentQueueName, msgHdlFactory)
+	go MessageHandler.MsgRcv(api.ProcessPaymentHandler, Utils.ProcessPaymentQueueName, &msgHdlFactory, Utils.All)
 
 	<-run
 
