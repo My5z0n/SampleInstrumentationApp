@@ -11,6 +11,7 @@ RUN go mod download
 COPY ./APIGateway/ ./APIGateway
 
 COPY ./Utils/ ./Utils
+COPY ./docs/ ./docs
 
 COPY ./MessageHandler/ ./MessageHandler
 
